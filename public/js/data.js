@@ -1,8 +1,8 @@
 // DATA
 var EXAMPLE = {
     "CMD": [
-        "adj. beach <span>cluster</span>", 
-        "cultivate n. <span>cluster</span>",
+        "adj. beach", 
+        "cultivate n.",
         "v. an important n.", 
 
         // "take $D ... trip", 
@@ -13,7 +13,7 @@ var EXAMPLE = {
     "HLI": [
         "How to describe beach?", 
         // "Which is popular stay at home or stay to home?",
-        "Describe beach <span>cluster</span>",
+        "Describe beach",
         // "Which one is better do research or conduct research?",
         // "Which expression is correct, go home or go to home?",
         "Which is correct, go home or go to home?",

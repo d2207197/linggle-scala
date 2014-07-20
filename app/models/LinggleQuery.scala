@@ -180,17 +180,19 @@ class Linggle(hBaseConfFileName: String, table: String) {
     val LinggleQuery(terms, length, positions, filters) = linggleQuery
     val row = s"""${length}-${positions.mkString} ${terms.mkString(" ")}""".getBytes
     val hbaseGet = new Get(row)
-    val data = Bytes.toString(
-      hTable.get(hbaseGet).getValue("data".getBytes, "".getBytes)
-    ).split("\n")
-    val totalCount = data(0).toLong
-    val ngramCounts = data drop 1 map { x =>
-      val Array(_ngram, _count) = x.split("\t", 2)
-      val ngram = _ngram.split(" ").toVector
-      val count = _count.toLong
-      Row(ngram, count, positions)
+    val result = hTable.get(hbaseGet).getValue("data".getBytes, "".getBytes)
+    if (result != null) {
+      val data = Bytes.toString(result).split("\n")
+      val totalCount = data(0).toLong
+      val ngramCounts = data drop 1 map { x =>
+        val Array(_ngram, _count) = x.split("\t", 2)
+        val ngram = _ngram.split(" ").toVector
+        val count = _count.toLong
+        Row(ngram, count, positions)
+      }
+      ngramCounts.toStream
     }
-    ngramCounts.toStream
+    else Stream()
   }
 
   // def scan(linggleQuery: LinggleQuery): Stream[Row] = {

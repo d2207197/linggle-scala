@@ -2,112 +2,112 @@
 
 <!DOCTYPE HTML>
 <html>
-<head>
-	<!-- coding : utf-8 -->
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <head>
+    <!-- coding : utf-8 -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-	<!-- cache : off -->
-	<meta http-equiv="cache-control" content="no-cache">
-	<meta http-equiv="pragma" content="no-cache">
-	<meta http-equiv="expires" content="0">
+    <!-- cache : off -->
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="0">
 
-	<!-- Lastest IE version -->
-	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Lastest IE version -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-	<!-- Page title -->
-	<title>Linggle 10^12- Language Reference Search Engines - NLPLab</title>
+    <!-- Page title -->
+    <title>Linggle 10^12- Language Reference Search Engines - NLPLab</title>
 
-	<meta name=“description” content="Linggle 10^12 is a language reference search engine developed by NTHU NLPLab. The system takes advantage of all public Web pages to provide frequency information on word combinations. With frequency information, you can exam if the phrase is composed in a common way. And with the powerful query syntax, you can find out a proper phrase to describe a subject, a concept or the usage of certain verb, adjective, adverb">
-	<!-- CSS -->
-	<link type="text/css" rel="stylesheet" href="static/css/main.css" />
-	<link type="text/css" rel="stylesheet" href="static/css/utility.css" />
-	<link type="text/css" rel="stylesheet" href="static/css/cluster.css" />
-	<link type="text/css" rel="stylesheet" href="static/css/traditional.css" />
+    <meta name=“description” content="Linggle 10^12 is a language reference search engine developed by NTHU NLPLab. The system takes advantage of all public Web pages to provide frequency information on word combinations. With frequency information, you can exam if the phrase is composed in a common way. And with the powerful query syntax, you can find out a proper phrase to describe a subject, a concept or the usage of certain verb, adjective, adverb">
+    <!-- CSS -->
+    <link type="text/css" rel="stylesheet" href="static/css/main.css" />
+    <link type="text/css" rel="stylesheet" href="static/css/utility.css" />
+    <link type="text/css" rel="stylesheet" href="static/css/cluster.css" />
+    <link type="text/css" rel="stylesheet" href="static/css/traditional.css" />
 
-	<!-- jQuery -->
-	<script type="text/javascript" src="static/js/jquery.js"></script>
-	<script type="text/javascript" src="static/js/jquery.ba-hashchange.min.js"></script>
-	<script type="text/javascript" src="static/js/data.js"></script>
-	<script type="text/javascript" src="static/js/utility.js"></script>
+    <!-- jQuery -->
+    <script type="text/javascript" src="static/js/jquery.js"></script>
+    <script type="text/javascript" src="static/js/jquery.ba-hashchange.min.js"></script>
+    <script type="text/javascript" src="static/js/data.js"></script>
+    <script type="text/javascript" src="static/js/utility.js"></script>
 
-	<script type="text/javascript" src="static/js/layout.js"></script>
-	<script type="text/javascript" src="static/js/example.js"></script>
-	<script type="text/javascript" src="static/js/cluster.js"></script>
+    <script type="text/javascript" src="static/js/layout.js"></script>
+    <script type="text/javascript" src="static/js/example.js"></script>
+    <script type="text/javascript" src="static/js/cluster.js"></script>
     <script type="text/javascript" src="static/js/main.js"></script>
 
     <link rel="shortcut icon" href="static/img/favicon.png" />
-</head>
+  </head>
 
-<body class="body">
+  <body class="body">
 
-	<div id="container">
-		<div id="help-mask" class="hide"></div>
-		<div id="help-container" class="hide">
-			<table cellspacing="0" cellpadding="0"></table>
-		</div>
-		<div id="header-container">
-			<div id="header">
-				<div id="title-container">
-					<img id="logo-linggle" src="static/img/linggle.png"/>
-					<img id="logo-square" src="static/img/square.png"/>
-				</div>
-				
-				<div id="search-container">
-					<table id="search-table" cellspacing="0" cellpadding="0">
-						<tr>
-							<td id="search-bar-container" class="bar-normal">
-								<input id="search-bar" type="search" value=""></input>
-								<div id="mode-container" >
-									<table cellspacing="0" cellpadding="0">
-										<tr>
-											<td id="mode-label-container">
-												<div id="HLI-label" class="mode-label">Command</div>
-												<div id="CMD-label" class="mode-label hide">Human</div>
+    <div id="container">
+      <div id="help-mask" class="hide"></div>
+      <div id="help-container" class="hide">
+	<table cellspacing="0" cellpadding="0"></table>
+      </div>
+      <div id="header-container">
+	<div id="header">
+	  <div id="title-container">
+	    <img id="logo-linggle" src="static/img/linggle.png"/>
+	    <img id="logo-square" src="static/img/square.png"/>
+	  </div>
+	  
+	  <div id="search-container">
+	    <table id="search-table" cellspacing="0" cellpadding="0">
+	      <tr>
+		<td id="search-bar-container" class="bar-normal">
+		  <input id="search-bar" type="search" value=""></input>
+		  <!-- <div id="mode-container" > -->
+		  <!--   <table cellspacing="0" cellpadding="0"> -->
+		  <!--     <tr> -->
+		  <!--       <td id="mode-label-container"> -->
+		  <!--         <\!-- <div id="HLI-label" class="mode-label">Command</div> -\-> -->
+		  <!--         <\!-- <div id="CMD-label" class="mode-label hide">Human</div> -\-> -->
 
-											</td>
-											<td id="mode-img-container">
-												<img id="HLI-img" class="mode-img" src="static/img/human.png"/>
-												<img id="CMD-img" class="mode-img hide" src="static/img/command.png"/>
-											</td>
-										</tr>
-									</table>
-								</div>
-							</td>
-						</tr>
-					</table>
+		  <!--       </td> -->
+		  <!--       <td id="mode-img-container"> -->
+		  <!--         <\!-- <img id="HLI-img" class="mode-img" src="static/img/human.png"/> -\-> -->
+                  <!--         <\!-- <img id="CMD-img" class="mode-img hide" src="static/img/command.png"/> -\-> -->
+		  <!--       </td> -->
+		  <!--     </tr> -->
+		  <!--   </table> -->
+		  <!-- </div> -->
+		</td>
+	      </tr>
+	    </table>
 
-					<button id="search-button">
-						<img src="static/img/search.png"/>
-					</button>
+	    <button id="search-button">
+	      <img src="static/img/search.png"/>
+	    </button>
 
-					<!-- <div id="search-example">Example</div> -->
-					<div id="search-help">Help</div>
-					<button id="cluster-toggle" class="normal-mode hide">cluster</button>
+	    <!-- <div id="search-example">Example</div> -->
+	    <div id="search-help">Help</div>
+	    <button id="cluster-toggle" class="normal-mode hide">cluster</button>
 
 
-					<div id="search-loading"><img src="static/img/loading.gif"></div>
-				</div>
+	    <div id="search-loading"><img src="static/img/loading.gif"></div>
+	  </div>
 
-			</div>
-		</div>
-		<div id="content">
-			<div id="cmd-convert-result"></div>
-
-			<div id="cluster-result-container" class="result-container hide">
-				<div id="tip" class="f hide">Tip : In each bubble, <em>very</em> similar words are grouped togheter under the same tint!</div>
-				<div id="cluster-type-container"><!-- preserve for cluster type (VN, AN) --></div>
-				<div id="cluster-tag-container"></div>
-				<div id="clusters-container" class="f"></div>
-			</div>
-			<table id="normal-result-container" cellspacing="0" cellpadding="0"></table>
-			<table id="result-block"  cellspacing="0" cellpadding="0"  class="hide"></table>
-		</div>
-		<div id="content-mask"></div>
-		<div id="footer hide" class="f">
-			<div><a href="http://nlp.cs.nthu.edu.tw/" target="_blank">© 2013 NTHU NLPLab</a></div>
-			<div><a href="/about/">about Linggle</a></div>
-		</div>
 	</div>
-</body>
+      </div>
+      <div id="content">
+	<div id="cmd-convert-result"></div>
+
+	<div id="cluster-result-container" class="result-container hide">
+	  <div id="tip" class="f hide">Tip : In each bubble, <em>very</em> similar words are grouped togheter under the same tint!</div>
+	  <div id="cluster-type-container"><!-- preserve for cluster type (VN, AN) --></div>
+	  <div id="cluster-tag-container"></div>
+	  <div id="clusters-container" class="f"></div>
+	</div>
+	<table id="normal-result-container" cellspacing="0" cellpadding="0"></table>
+	<table id="result-block"  cellspacing="0" cellpadding="0"  class="hide"></table>
+      </div>
+      <div id="content-mask"></div>
+      <div id="footer hide" class="f">
+	<div><a href="http://nlp.cs.nthu.edu.tw/" target="_blank">© 2013 NTHU NLPLab</a></div>
+	<div><a href="/about/">about Linggle</a></div>
+      </div>
+    </div>
+  </body>
 
 </html>

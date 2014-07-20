@@ -88,9 +88,9 @@ function detectPlatform()
 	
 }
 
-function redirect(query, mode)
+function redirect(query)
 {
-	window.location = '#' + query + '#' + mode;
+	window.location = '#' + query ;
 }
 function inputEmpty()
 {
@@ -103,7 +103,7 @@ function inputEmpty()
 function events()
 {
 	/// AJAX LOAD PAGE
-	$(window).hashchange(function(){ init(); });
+	// $(window).hashchange(function(){ init(); });
 
 	/// LAYOUT EVENT
 	$(window).resize(function(){ layout(); });
@@ -115,9 +115,11 @@ function events()
 		EXAMPLE_STATE = 'off';
 		exampleHandler(EXAMPLE_STATE);
 		// set url, this will trigger the $(window).hashchange event and perform the search
-		var query = encodeURIComponent($.trim($("#search-bar").val()));
+		var q = encodeURIComponent($.trim($("#search-bar").val()));
 		// window.location = '#' + query;
-		redirect(query, MODE);
+	    // redirect(query, MODE);
+            document.location.hash = q
+            query();
 	});
 	/// SEARCHBAR EVENT
 	$("#search-bar").keyup(function(e){
@@ -209,21 +211,21 @@ function events()
 	});
 
 	// MODE CHANGE EVENT
-	$("#HLI-img").click(function(){
-		redirect("", "HLI");
-	});
-	$("#CMD-img").click(function(){
-		redirect("", "CMD");
-	});
+	// $("#HLI-img").click(function(){
+	// 	redirect("", "HLI");
+	// });
+	// $("#CMD-img").click(function(){
+	// 	redirect("", "CMD");
+	// });
 
 	// EXAMPLE EVENTS
 	attach_example_fetch_events();
 
 	// CLUSTER TAG EVENT
-	attach_cluster_tag_event();
+	// attach_cluster_tag_event();
 
 	// CLUSTER TOGGLE EVENT
-	attach_cluster_toggle_event();
+	// attach_cluster_toggle_event();
 
 	$(".ngram").live("click",function(){
 		$(this).find(".expand-example").click();
@@ -423,12 +425,12 @@ function fetch_worker(server, query)
 
 		}else{
 			// show command convert result
-	    	if(MODE == "HLI") {
-				$('#cmd-convert-result').text("Command:");
-				$("<span/>").text(query).appendTo($('#cmd-convert-result')).click(function(){
-					redirect(encodeURIComponent(query),"CMD");
-				});
-			}
+	    	// if(MODE == "HLI") {
+		// 		$('#cmd-convert-result').text("Command:");
+		// 		$("<span/>").text(query).appendTo($('#cmd-convert-result')).click(function(){
+		// 			redirect(encodeURIComponent(query));
+		// 		});
+		// 	}
 		}		
 	});
 }
@@ -455,32 +457,32 @@ function fill_content(content_mode)
 		$('#cluster-toggle').addClass('normal-mode');			
 	}	
 }
-function attach_cluster_toggle_event()
-{
+// function attach_cluster_toggle_event()
+// {
 
-	$('#cluster-toggle').click(function(){
+// 	$('#cluster-toggle').click(function(){
 
-		if(content_mode == 'cluster')
-		{
-			// cluster -> normal
+// 		if(content_mode == 'cluster')
+// 		{
+// 			// cluster -> normal
 
-			$('#tip').hide(0);
-			content_mode = 'normal';
+// 			$('#tip').hide(0);
+// 			content_mode = 'normal';
 			
-		}else if(content_mode == 'normal')
-		{
-			// if cluster results exists
-			if(cluster_idx)
-			{
-				content_mode = 'cluster';
-				// $(this).addClass('cluster-mode');
-			}else{
-				// $(this).addClass('normal-mode');
-			}
-		}
-		fill_content(content_mode);
-	});
-}
+// 		}else if(content_mode == 'normal')
+// 		{
+// 			// if cluster results exists
+// 			if(cluster_idx)
+// 			{
+// 				content_mode = 'cluster';
+// 				// $(this).addClass('cluster-mode');
+// 			}else{
+// 				// $(this).addClass('normal-mode');
+// 			}
+// 		}
+// 		fill_content(content_mode);
+// 	});
+// }
 
 function query()
 {
@@ -493,28 +495,29 @@ function query()
 	// loading img show
 	$("#search-loading").find("img").show(0);
 
-	var searchBarValue = $.trim($("#search-bar").val());
+    var searchBarValue = $.trim($("#search-bar").val());
+    // console.log(searchBarValue)
 	encode_query = encodeURIComponent(searchBarValue);
 
-	if(MODE == 'CMD')
-	{
+	// if(MODE == 'CMD')
+	// {
 		fetch_worker(server, encode_query);
 
-	}else if(MODE == 'HLI')
-	{	
-		// convert the Human-Input query into Command
-		$.ajax({
-		    url: "sent/"+encode_query,
-		    type: "GET",
-		    timeout: SENT_SERVICE_TIMEOUT,
-		    success: function(query) {
-		    	// fetch result using command query
-		    	fetch_worker(server, query);
-		    },
-		    complete: function(data) {},
-		    error: function(x, t, m) { if(t==="timeout") {/*console.log("got timeout");*/} else {/*console.log(t);*/} }
-		});
-	}
+	// }else if(MODE == 'HLI')
+	// {	
+	// 	// convert the Human-Input query into Command
+	// 	$.ajax({
+	// 	    url: "sent/"+encode_query,
+	// 	    type: "GET",
+	// 	    timeout: SENT_SERVICE_TIMEOUT,
+	// 	    success: function(query) {
+	// 	    	// fetch result using command query
+	// 	    	fetch_worker(server, query);
+	// 	    },
+	// 	    complete: function(data) {},
+	// 	    error: function(x, t, m) { if(t==="timeout") {/*console.log("got timeout");*/} else {/*console.log(t);*/} }
+	// 	});
+	// }
 
 
 }
@@ -712,25 +715,25 @@ function infofetch()
 	var params = location.hash.split('#');
 	var q = "";
 
-	if(params.length == 3)	// correct input format (query + mode)
+	if(params.length == 2)	// correct input format (query + mode)
 	{
 		// set query
 		QUERY_URL = params[1];
 		q = $.trim(decodeURIComponent(params[1]));
 
 		// set mode
-		if(params[2]=='HLI'){
-			MODE = 'HLI';
-			_MODE = 'CMD';
-		}
-		else {
-			MODE = 'CMD';
-			_MODE = 'HLI';
-		}
+		// if(params[2]=='HLI'){
+		// 	MODE = 'HLI';
+		// 	_MODE = 'CMD';
+		// }
+		// else {
+		// 	MODE = 'CMD';
+		// 	_MODE = 'HLI';
+		// }
 
 	}else // incorrect input format
 	{
-		redirect("", "CMD");
+		redirect("");
 	}
 
 	// with query
