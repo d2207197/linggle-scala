@@ -1,0 +1,57 @@
+.result-container { width: 800px; position: relative; margin: 0 auto;  }
+#clusters-container {}
+
+/*---------------------------- Cluster ----------------------------*/
+.cluster {width: 760px; background: #444; margin: 0 auto; margin-bottom:32px; border-radius:8px; border: 1px solid #DDD; box-shadow: 2px 2px 6px 0px #AAA;}
+
+#tip {position: relative; color: #aaa; font-size: 14px; padding-left: 36px; top:0px; right:0px; max-width: 100%; height: 48px;}
+
+.cluster-odd  {background: #eedd83;}
+.cluster-even {background: #99f08a;}
+
+/*.layer2-interleve {}*/
+.layer2-odd {background: #fff6cf;}
+.layer2-even {background: #e0ffc8;}
+
+.cluster-odd-apple  	{background: #fdfeb0!important;}
+.cluster-even-apple {background: #c8fea9!important;}
+
+/*.cluster:nth-child(even) {background: #c8fea9;}
+.cluster:nth-child(odd) {background: #fdfeb0;}*/
+.cluster-label-container {height: 32px; line-height: 32px; color:#666; position: relative;}
+
+.cluster-label-mask {height: 100%; width: 100%; background: white; opacity: 0.5; position: absolute; z-index: 1;}
+.cluster-label { padding-left: 12px; height: 100%; width: 100%; position: absolute; z-index: 2;}
+
+.entry, .more-wrap {border-top: 1px solid #D4D4D4; width:750px; margin: 0 auto; height: 28px; line-height: 28px;}
+.more-wrap {text-align: right;}
+.more-text {margin-right: 25px; color: #666; font-size: smaller;}
+.more-text:hover {cursor: pointer; color: #444; text-decoration: underline;}
+
+.entry-ngram, .entry-count, .entry-percent, .entry-example {float: left; line-height: 28px;}
+.entry-ngram { width: 480px; padding-left: 14px;}
+.entry-count, .entry-percent {text-align: center;}
+.entry-count {width: 128px;}
+.entry-percent {width: 64px;}
+.entry-example {width: 32px; height:28px; text-align: center; }
+.entry-example img { width: 20px; height: 20px; margin-top: 4px;}
+.entry-example img:hover {cursor:pointer;}
+
+.example-container {width: 100%; min-height: 32px; padding-bottom: 12px; }
+.quoteleft-cluster, .quoteright-cluster {width: 38px; height: 38px;}
+.quoteleft-cluster {margin-left:36px;}
+.example-sent {max-width: 580px; line-height: 24px;}
+.quoteleft-cluster, .quoteright-cluster, .example-sent { display: inline-block; }
+
+/*--------------------------- end Cluster ---------------------------*/
+
+#cluster-tag-container {width: 800px; min-height:26px; /*max-height: 64px;*/ margin-bottom:16px; text-align: center; /*background: red;*/}
+.tag-on {background: #FDFDFD!important; color:#454545!important; box-shadow: 1px 1px 3px 0px #CCC inset!important;}
+.tag-container {min-width:36px; height: 24px; line-height:24px; display: inline-block; margin-bottom: 5px; border: 1px solid #CCC; border-radius:5px; margin-right:15px; background: #EEE;  color:#666; box-shadow: 1px 1px 2px 0px #999;}
+.tag-container:hover {cursor: pointer;}
+.tag-container div {float:left;}
+.tag-status {width: 24px; text-align: center}
+.tag-status img {width:10px;}
+.tag-text {padding-right: 8px;}
+.tag-text .tag-text-count { padding-left: 3px; padding-left: 3px; font-size: smaller; opacity: 0.85;}
+

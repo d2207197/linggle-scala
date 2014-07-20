@@ -1,0 +1,31 @@
+.item { width: 100%; height: 48px; background: #FFF; font-family: Verdana, Geneva, sans-serif; font-size: 16px; }
+
+#normal-result-container {
+	position: relative;
+	margin: 0 auto;
+	width: 800px;
+} 
+
+.item td {}
+.item-ngram, .item-portion, .item-count { height: 48px; line-height: 48px; position: relative;}
+.item-portion, .item-count, .item-example { text-align: center; }
+
+
+.item-ngram 	{width: 540px;}
+.item-bar 		{ height: 5px; background: brown; position: relative; bottom:5px; left:0px;}
+.item-portion 	{width: 64px;}
+.item-count 	{width: 128px;}
+.item-example 	{width: 32px; height: 32px;}
+.item-example img { width: 26px; height: 26px; }
+.item-example img:hover {cursor:pointer;}
+
+.example-container div {}
+.quoteleft, .quoteright, .example-sent-new{ float: left;}
+
+.quoteleft, .quoteright {width:38px; height: 38px;}
+
+.quoteleft	{ margin-left: 24px; top:0px;}
+.quoteright { bottom:0px;}
+
+.item-example-container td {padding-top: 12px; padding-bottom: 8px;}
+.example-sent-new { max-width: 640px; font-family: Verdana, Geneva, sans-serif; font-size: 14px; line-height: 24px;}
