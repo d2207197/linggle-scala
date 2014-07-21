@@ -49,7 +49,9 @@ libraryDependencies += "com.fasterxml.jackson.module" % "jackson-module-scala_2.
 
 libraryDependencies += "org.scala-lang" % "scala-parser-combinators" % "2.11.0-M4"
 
-javaOptions ++= Seq("-XX:MaxPermSize=1024m", "-Xmx2048m")
+// javaOptions ++= Seq("-XX:MaxPermSize=1024m", "-Xmx2048m")
+javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.6", "-target", "1.6")
+
 
 seq(sbtassembly.Plugin.assemblySettings: _*)
 

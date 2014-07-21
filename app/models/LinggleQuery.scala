@@ -1,7 +1,7 @@
 package cc.nlplab
 
-
-
+import play.api.Play.current
+import play.api.{Logger,Play}
 import org.apache.hadoop.hbase.{HBaseConfiguration, HTableDescriptor, HColumnDescriptor}
 import org.apache.hadoop.hbase.client.{HBaseAdmin,HTable,Put,Get,Scan,ResultScanner,Result}
 import org.apache.hadoop.conf.Configuration
@@ -123,7 +123,24 @@ class Linggle(hBaseConfFileName: String, table: String) {
   implicit object CountOrdering extends scala.math.Ordering[Row] {
     def compare(a: Row, b: Row) = - (a.count compare b.count)
   }
-  val posMap =  POS("bncwordlemma.json")
+
+  Play.getExistingFile("")
+  val bncJsonPath = "bncwordlemma.json"
+  // val bncJsonIS = current.resourceAsStream(bncJsonPath)
+
+  val bncSrc = current.resourceAsStream(bncJsonPath).map { is =>  POS(is) } orElse {
+  // Didn't find the resource, are we in dev / test / stage environment?
+    Logger.warn("Could not find %s as a jar resource, will look for a conf directory".format(bncJsonPath))
+    Play.getExistingFile("conf/%s".format(bncJsonPath)).map { file => POS(file) }
+  }
+  val posMap = bncSrc.get
+  // val posMap = (src.map { is =>
+    // POS(src)
+  // }).get
+  // orElse {
+      // Logger.warn("Could not find %s as a jar resource, will look for a conf directory".format(bncJsonPath))
+  // }
+
   // val unigramMap = UnigramMap(unigramMapJson)
 
   val hTable = hTableConnect(hBaseConfFileName, table)

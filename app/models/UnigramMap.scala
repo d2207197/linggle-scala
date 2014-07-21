@@ -30,11 +30,19 @@ class POS(posMap: Map[String, Vector[String]]) {
 }
 
 object POS {
-  def apply(jsonPath: String) = {
+  def apply(jsonIS: java.io.InputStream) = {
     val mapper = new ObjectMapper() with ScalaObjectMapper
     mapper.registerModule(DefaultScalaModule)
-    val posMap:Map[String, Vector[String]] =  mapper.readValue[Map[String,Vector[String]]](new java.io.File (jsonPath))
+    val posMap:Map[String, Vector[String]] =  mapper.readValue[Map[String,Vector[String]]](jsonIS)
     new POS(posMap)
   }
+
+  def apply(jsonFile: java.io.File) = {
+    val mapper = new ObjectMapper() with ScalaObjectMapper
+    mapper.registerModule(DefaultScalaModule)
+    val posMap:Map[String, Vector[String]] =  mapper.readValue[Map[String,Vector[String]]](jsonFile)
+    new POS(posMap)
+  }
+
 }
 
