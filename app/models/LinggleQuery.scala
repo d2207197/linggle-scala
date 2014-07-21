@@ -116,7 +116,7 @@ object LinggleQuery {
 }
 
 
-case class Row(ngram: Vector[String], count: Long, positions: Vector[Int] )
+case class Row(ngram: Vector[String] = Vector(), count: Long = 0, positions: Vector[Int] = Vector())
 
 class Linggle(hBaseConfFileName: String, table: String) {
 
@@ -174,6 +174,13 @@ class Linggle(hBaseConfFileName: String, table: String) {
     timeit(() => get(linggleQuery))
   }
 
+
+
+  def rowFilter(lq: LinggleQuery)(row :Row) : Boolean = {
+    val posTagTrans = Map( "n." -> "n", "v." -> "v", "det." -> "d", "prep." -> "p", "adj." -> "a", "adv." -> "r")
+    lq.filters forall { case (position, posTag) => posMap(row.ngram(position), posTagTrans(posTag)) }
+  }
+
   def get(linggleQuery: LinggleQuery): Stream[Row] = {
     println(s"get: $linggleQuery")
     
@@ -190,7 +197,7 @@ class Linggle(hBaseConfFileName: String, table: String) {
         val count = _count.toLong
         Row(ngram, count, positions)
       }
-      ngramCounts.toStream
+      ngramCounts.toStream.filter(rowFilter(linggleQuery)(_))
     }
     else Stream()
   }
@@ -239,25 +246,56 @@ class Linggle(hBaseConfFileName: String, table: String) {
   //   val ones : Stream[Int] = 1 #:: ones
   //   val nats = 0 #:: nats zipWith (+) ones
   // }
-  
-  def rowFilter(lq: LinggleQuery)(row :Row) : Boolean = {
-    val posTagTrans = Map( "n." -> "n", "v." -> "v", "det." -> "d", "prep." -> "p", "adj." -> "a", "adv." -> "r")
-    lq.filters forall { case (position, posTag) => posMap(row.ngram(position), posTagTrans(posTag)) } 
+
+  def merge(ss: Seq[Stream[Row]]): Stream[Row] = {
+    if (ss.size  == 0 )
+      Stream.Empty
+    else if (ss.size == 1) ss.head
+    else {
+      val (max, others) = (ss drop 1).foldLeft(
+        (ss.head, List[Stream[Row]]())
+      ){
+        case ((Stream.Empty, oss), s) =>
+          (s, oss)
+        case ((m, oss), Stream.Empty) =>
+          (m, oss)
+        case ((m, oss), s) =>
+          if (s.head.count > m.head.count )
+            (s, m :: oss )
+          else
+            (m, s :: oss)
+      }
+      max match {
+        case Stream.Empty =>
+          Stream.Empty
+        case _ =>
+          max.head #:: merge( max.tail :: others)
+
+          }
+    }
   }
 
+
+  // def rowFilter(lq: LinggleQuery)(row :Row) : Boolean = {
+  //   val posTagTrans = Map( "n." -> "n", "v." -> "v", "det." -> "d", "prep." -> "p", "adj." -> "a", "adv." -> "r")
+  //   lq.filters forall { case (position, posTag) => posMap(row.ngram(position), posTagTrans(posTag)) }
+  // }
+
   
 
-  def query(q: String): List[Row] = {
+  def query(q: String): Stream[Row] = {
     println("query: $q")
     import    play.Logger
     Logger.info("hey yo")
     val lqs: List[LinggleQuery] = LinggleQuery.parse(q).get
-    val rows = for {
-      lq <- lqs
-      row <- timeitGet(lq) take 100
-      if rowFilter(lq)(row)
-    } yield row
-    rows.sorted.toList     // TODO: merge sort
+    val results = for {
+      lq <- lqs.par
+      // row = timeitGet(lq) take 100
+      // if rowFilter(lq)(row)
+    } yield timeitGet(lq) take 1000
+    val rows = merge(results.seq)
+    // rows.seq.sorted.toList     // TODO: merge sort
+    rows
   }
 }
 
