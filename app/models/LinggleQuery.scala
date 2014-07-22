@@ -2,10 +2,13 @@ package cc.nlplab
 
 import play.api.Play.current
 import play.api.{Logger,Play}
+// import    play.Logger
 import org.apache.hadoop.hbase.{HBaseConfiguration, HTableDescriptor, HColumnDescriptor}
 import org.apache.hadoop.hbase.client.{HBaseAdmin,HTable,Put,Get,Scan,ResultScanner,Result}
 import org.apache.hadoop.conf.Configuration
 import java.io.FileInputStream
+import java.io.InputStream
+
 
 import org.apache.hadoop.hbase.util.{Bytes, Writables}
 
@@ -124,16 +127,16 @@ class Linggle(hBaseConfFileName: String, table: String) {
     def compare(a: Row, b: Row) = - (a.count compare b.count)
   }
 
-  Play.getExistingFile("")
+  // Play.getExistingFile("")
   val bncJsonPath = "bncwordlemma.json"
   // val bncJsonIS = current.resourceAsStream(bncJsonPath)
 
-  val bncSrc = current.resourceAsStream(bncJsonPath).map { is =>  POS(is) } orElse {
+  val posMapOpt = current.resourceAsStream(bncJsonPath).map { is =>  POS(is) } orElse {
   // Didn't find the resource, are we in dev / test / stage environment?
     Logger.warn("Could not find %s as a jar resource, will look for a conf directory".format(bncJsonPath))
     Play.getExistingFile("conf/%s".format(bncJsonPath)).map { file => POS(file) }
   }
-  val posMap = bncSrc.get
+  val posMap = posMapOpt.get
   // val posMap = (src.map { is =>
     // POS(src)
   // }).get
@@ -142,12 +145,13 @@ class Linggle(hBaseConfFileName: String, table: String) {
   // }
 
   // val unigramMap = UnigramMap(unigramMapJson)
+  val hBaseConfFileIS = current.resourceAsStream("hbase-site.xml").get
 
-  val hTable = hTableConnect(hBaseConfFileName, table)
+  val hTable = hTableConnect(hBaseConfFileIS, table)
 
-  def hTableConnect(hBaseConfFileName: String, table: String):HTable = {
+  def hTableConnect(hBaseConfFileIS: InputStream, table: String):HTable = {
     val conf = new Configuration
-    conf.addResource(new FileInputStream(hBaseConfFileName))
+    conf.addResource(hBaseConfFileIS)
     val config = HBaseConfiguration.create(conf)
     new HTable(config, table)
   }
@@ -301,9 +305,8 @@ class Linggle(hBaseConfFileName: String, table: String) {
   
 
   def query(q: String): Stream[Row] = {
-    println("query: $q")
-    import    play.Logger
-    Logger.info("hey yo")
+
+    Logger.info("query: $q")
     val lqs: List[LinggleQuery] = LinggleQuery.parse(q).get
     val results = for {
       lq <- lqs.par
