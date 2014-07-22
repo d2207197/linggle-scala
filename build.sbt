@@ -1,10 +1,28 @@
 import AssemblyKeys._ // put this at the top of the file
 
+import com.typesafe.sbt.SbtNativePackager._
+import NativePackagerKeys._
+
+
+import com.typesafe.sbt.packager.archetypes.ServerLoader.SystemV
+
 name := """linggle"""
 
 version := "1.0-SNAPSHOT"
 
 organization := "nlplab"
+
+packageArchetype.java_server
+
+
+packageDescription in Debian := "Linggle - Linguistic search engine"
+
+maintainer in Debian := "顏孜羲"
+
+
+
+serverLoading in Debian := SystemV
+
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
@@ -49,7 +67,9 @@ libraryDependencies += "com.fasterxml.jackson.module" % "jackson-module-scala_2.
 
 libraryDependencies += "org.scala-lang" % "scala-parser-combinators" % "2.11.0-M4"
 
-javaOptions ++= Seq("-XX:MaxPermSize=1024m", "-Xmx2048m")
+// javaOptions ++= Seq("-XX:MaxPermSize=1024m", "-Xmx2048m")
+javacOptions ++= Seq("-encoding", "UTF-8", "-source", "1.6", "-target", "1.6")
+
 
 seq(sbtassembly.Plugin.assemblySettings: _*)
 

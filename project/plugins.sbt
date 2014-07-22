@@ -16,3 +16,6 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.1")
 addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.0.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-mocha" % "1.0.0")
+
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "0.7.2-RC2")
+
