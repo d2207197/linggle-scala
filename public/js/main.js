@@ -113,6 +113,7 @@ function events()
     /// SEARCH EVENT
     // ! Modify the search event here !
     $("#search-button").click(function(){
+        request.abort();
 	EXAMPLE_STATE = 'off';
 	exampleHandler(EXAMPLE_STATE);
 	// set url, this will trigger the $(window).hashchange event and perform the search
@@ -374,16 +375,16 @@ function _clear_previous_results()
     $('#normal-result-container').html('');
 }
 
-var RECV_DATA;
 var cluster_idx = false;
 var normal_idx = false;
-var content_mode = 'cluster';
+// var content_mode = 'cluster';
 
 /// fetch data from wujc, including cluster/tratitional results
+var request;
 function fetch_worker(server, query)
 {
     $('#cluster-toggle').hide(0);
-    var request = $.ajax({
+    request = $.ajax({
 	url: server + query,
 	// url: 'static/A_beach.json',
 	// url: "static/cultivate_N_new.json",
@@ -395,23 +396,22 @@ function fetch_worker(server, query)
     request.done(function(recv){
 
 	// store the received data
-	RECV_DATA = recv;
-	cluster_idx = false;
-	normal_idx = false;
+	// cluster_idx = false;
+	// normal_idx = false;
 
-	if (recv.length == 1)
-	{
-	    normal_idx = 0
-	}else if (recv.length == 2){
+	// if (recv.length == 1)
+	// {
+	//     normal_idx = 0
+	// }else if (recv.length == 2){
 
-	    cluster_idx = recv[0][0] == 'new' ? 0 : 1
-	    normal_idx = 1 - cluster_idx
-	    $('#cluster-toggle').show(0);
-	}else{
-	    console.error('invalid recv data:',recv)
-	}
+	//     cluster_idx = recv[0][0] == 'new' ? 0 : 1
+	//     normal_idx = 1 - cluster_idx
+	//     $('#cluster-toggle').show(0);
+	// }else{
+	//     console.error('invalid recv data:',recv)
+	// }
 	// default "cluster"
-	fill_content(content_mode);
+	fill_content( recv);
 	layout(); 			// adjust layout
 	
     });
@@ -454,28 +454,28 @@ function fetch_worker(server, query)
 	}		
     });
 }
-function fill_content(content_mode)
+function fill_content( recv)
 {
     _clear_previous_results();
 
-    $('#cluster-toggle').removeClass('normal-mode cluster-mode');
+    // $('#cluster-toggle').removeClass('normal-mode cluster-mode');
 
-    if(content_mode == 'cluster' && cluster_idx)
-    {
-	var data = RECV_DATA[cluster_idx][1];
-	_show_clustering_results(data);
-	$('#normal-result-container').addClass('hide');
-	$('#cluster-result-container').removeClass('hide');	
-	$('#cluster-toggle').addClass('cluster-mode');
-    }
-    else if(content_mode == 'normal' || (content_mode == 'cluster' && !cluster_idx) )
-    {
-	var data = RECV_DATA[normal_idx][1];
-	_show_traditional_results(data);
+    // if(content_mode == 'cluster' && cluster_idx)
+    // {
+    //     var data = recv[cluster_idx][1];
+    //     _show_clustering_results(data);
+    //     $('#normal-result-container').addClass('hide');
+    //     $('#cluster-result-container').removeClass('hide');	
+    //     $('#cluster-toggle').addClass('cluster-mode');
+    // }
+    // else if(content_mode == 'normal' || (content_mode == 'cluster' && !cluster_idx) )
+    // {
+	// var data = recv[normal_idx][1];
+	_show_traditional_results(recv);
 	$('#cluster-result-container').addClass('hide');
 	$('#normal-result-container').removeClass('hide');
 	$('#cluster-toggle').addClass('normal-mode');			
-    }	
+    // }	
 }
 // function attach_cluster_toggle_event()
 // {

@@ -191,7 +191,7 @@ class Linggle(hBaseConfFileName: String, table: String) {
     ret
   }
 
-  def timeitGet(linggleQuery: LinggleQuery): Stream[Row] = {
+  def timeitGet(linggleQuery: LinggleQuery): (Long,Stream[Row]) = {
     timeit(() => get(linggleQuery))
   }
 
@@ -202,7 +202,7 @@ class Linggle(hBaseConfFileName: String, table: String) {
     lq.filters forall { case (position, posTag) => posMap(row.ngram(position), posTagTrans(posTag)) }
   }
 
-  def get(linggleQuery: LinggleQuery): Stream[Row] = {
+  def get(linggleQuery: LinggleQuery): (Long, Stream[Row]) = {
     println(s"get: $linggleQuery")
     
     val LinggleQuery(terms, length, positions, filters) = linggleQuery
@@ -218,9 +218,9 @@ class Linggle(hBaseConfFileName: String, table: String) {
         val count = _count.toLong
         Row(ngram, count, positions)
       }
-      ngramCounts.toStream.filter(rowFilter(linggleQuery)(_))
+      (totalCount, ngramCounts.toStream.filter(rowFilter(linggleQuery)(_)))
     }
-    else Stream()
+    else (0, Stream())
   }
 
   // def scan(linggleQuery: LinggleQuery): Stream[Row] = {
@@ -304,7 +304,7 @@ class Linggle(hBaseConfFileName: String, table: String) {
 
   
 
-  def query(q: String): Stream[Row] = {
+  def query(q: String): (Long, Stream[Row]) = {
 
     Logger.info("query: $q")
     val lqs: List[LinggleQuery] = LinggleQuery.parse(q).get
@@ -312,10 +312,12 @@ class Linggle(hBaseConfFileName: String, table: String) {
       lq <- lqs.par
       // row = timeitGet(lq) take 100
       // if rowFilter(lq)(row)
-    } yield timeitGet(lq) take 1000
-    val rows = merge(results.seq)
+    } yield timeitGet(lq)
+    val  (totalCounts, manyRows) = results.seq.unzip
+    val totalCount = totalCounts.sum
+    val rows = merge(manyRows)
     // rows.seq.sorted.toList     // TODO: merge sort
-    rows
+    (totalCount, rows)
   }
 }
 
@@ -326,7 +328,8 @@ object Tester {
 
     val lgl =new Linggle("hbase-site.xml", "web1t-linggle")
 
-    (lgl.query("kill the *") take 100).toList
+    val (totalCount, rows) =lgl.query("kill the *")
+    (rows take 100).toList
   }
 }
 
