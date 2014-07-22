@@ -113,7 +113,9 @@ function events()
     /// SEARCH EVENT
     // ! Modify the search event here !
     $("#search-button").click(function(){
-        request.abort();
+        if (request != null) {
+            request.abort();
+        }
 	EXAMPLE_STATE = 'off';
 	exampleHandler(EXAMPLE_STATE);
 	// set url, this will trigger the $(window).hashchange event and perform the search
@@ -380,7 +382,7 @@ var normal_idx = false;
 // var content_mode = 'cluster';
 
 /// fetch data from wujc, including cluster/tratitional results
-var request;
+var request = null;
 function fetch_worker(server, query)
 {
     $('#cluster-toggle').hide(0);
@@ -451,7 +453,8 @@ function fetch_worker(server, query)
 	    // 			redirect(encodeURIComponent(query));
 	    // 		});
 	    // 	}
-	}		
+	}
+	request = null
     });
 }
 function fill_content( recv)
