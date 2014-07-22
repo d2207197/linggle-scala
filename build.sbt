@@ -12,7 +12,7 @@ version := "1.0-SNAPSHOT"
 
 organization := "nlplab"
 
-packageArchetype.java_server
+// packageArchetype.java_server
 
 
 packageDescription in Debian := "Linggle - Linguistic search engine"
