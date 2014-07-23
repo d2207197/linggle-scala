@@ -1,6 +1,6 @@
 // ------------------------------------------------------------------------------ //
 // PROGRAM CONTROL
-var MODE;				// active mode
+var MODE = "CMD";				// active mode
 var _MODE; 				// inactive mode
 var EXAMPLE_STATE;		// example under <input> open or not
 var EXAMPLE_SENT = 'off'// example sentence show or not
@@ -113,7 +113,7 @@ function events()
     /// SEARCH EVENT
     // ! Modify the search event here !
     $("#search-button").click(function(){
-        if (request != null) {
+        if (request && request.readyState != 4){
             request.abort();
         }
 	EXAMPLE_STATE = 'off';

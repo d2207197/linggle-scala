@@ -125,7 +125,7 @@ body {
 	color: #555;
 }
 #search-bar-container {
-	width: 530px;
+	/* width: 530px; */
 	position: relative;
 	background: #FDFDFD;
 
