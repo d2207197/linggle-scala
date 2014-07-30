@@ -54,7 +54,7 @@ object LinggleQuery {
     val term = raw"""[-a-zA-Z0-9'.]+""".r ^^ {Term(_)}
 
     val partOfSpeech =
-      ("adj." | "n." | "v." | "prep." | "det." |  "adv.") ^^ { POS(_)}
+      ("adj." | "n." | "v." | "prep." | "det." |  "adv." | "pron." | "conj." | "interj." ) ^^ { POS(_)}
 
     val simWords =
       "~" ~ raw"""[-a-zA-Z'.]+""".r ~
@@ -190,8 +190,8 @@ class Linggle(hBaseConfFileName: String, table: String) {
 
 
   def rowFilter(lq: LinggleQuery)(row :Row) : Boolean = {
-    val posTagTrans = Map( "n." -> "n", "v." -> "v", "det." -> "d", "prep." -> "p", "adj." -> "a", "adv." -> "r")
-    lq.filters forall { case (position, posTag) => posMap(row.ngram(position), posTagTrans(posTag)) }
+val posTagTrans = Map( "n." -> "n", "v." -> "v", "det." -> "d", "prep." -> "p", "adj." -> "a", "adv." -> "r", "pron." -> "U", "conj." -> "c", "interj." -> "i")
+    lq.filters forall { case (position, posTag) => posMap(row.ngram(position).toLowerCase, posTagTrans(posTag)) }
   }
 
   def hbaseGet(linggleQuery: LinggleQuery): (Long, Stream[Row]) = {
