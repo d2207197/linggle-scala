@@ -28,7 +28,7 @@ var HELP = {
         {"<span>?</span><m>Term</m>":   "search for <m>Term</m> <span>optionally</span>"},
         {"<span>*</span>"         :   "match <span>zero or more</span> words"},
         {"Term1<span>/</span>Term2" :   "with either Term1 <span>or</span> Term2"},
-        {"<span>part-of-speech</span>"        :   "search for word with specific part-of-speech.<br><br><span>v.</span>(verb), <span>n.</span>(noun), <span>adj.</span>(adjective), <span>adv.</span>(adverb) and <span>prep.</span>(preposition), <span>det.</span>(determiner)"},
+        {"<span>part-of-speech</span>"        :   "search for word with specific part-of-speech.<br><br><span>v.</span>(verb), <span>n.</span>(noun), <span>adj.</span>(adjective), <span>adv.</span>(adverb) and <span>prep.</span>(preposition), <span>det.</span>(determiner), <span>conj.</span>(conjunction), <span>pron.</span>(pronoun), <span>interj.</span>(interjection)"},
     ],
     "HLI": [
         {"<span>Which</span>"       :   "Which ____ is ____, <span>item A</span> or <span>item B</span>"},
