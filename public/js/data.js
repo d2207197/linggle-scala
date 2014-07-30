@@ -3,12 +3,13 @@ var EXAMPLE = {
     "CMD": [
         "adj. beach", 
         "cultivate n.",
-        "v. an important n.", 
-
+        
+        "v. an/a adj. role", 
         // "take $D ... trip", 
         "go ?to home", 
+        "how to v. n."
+        "play det. ~important role/part"
         
-        "play det. ~important role|part"
     ],
     "HLI": [
         "How to describe beach?", 
