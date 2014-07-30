@@ -1,4 +1,4 @@
-package cc.nlplab
+package models
 
 import play.api.Play.current
 import play.api.{Logger,Play}
@@ -8,6 +8,8 @@ import org.apache.hadoop.hbase.client.{HBaseAdmin,HTable,Put,Get,Scan,ResultScan
 import org.apache.hadoop.conf.Configuration
 import java.io.FileInputStream
 import java.io.InputStream
+
+import com.mongodb.casbah.Imports._
 
 
 import org.apache.hadoop.hbase.util.{Bytes, Writables}
@@ -24,6 +26,7 @@ case class LinggleQuery(terms: Vector[String] , length: Int , positions: Vector[
 
 object LinggleQuery {
 
+
   trait Atom
 
   trait HereAtom extends Atom
@@ -36,6 +39,7 @@ object LinggleQuery {
 
   case class POS(pos: String) extends NonWildCard
   case class Term(term: String) extends NonWildCard
+  case class SimWords(term: String, bound: Double, topN: Int) extends NonWildCard
 
   case class Maybe(expr: HereAtom) extends Atom
   case object AnyWildCard extends Atom
@@ -47,13 +51,27 @@ object LinggleQuery {
     val wildCard  = "_".r ^^^ { WildCard}
     val anyWildCard = "*" ^^^ { AnyWildCard}
 
-    val term = raw"""[a-zA-Z0-9'.]+""".r ^^ {Term(_)}
-    val partOfSpeech = ("adj." | "n." | "v." | "prep." | "det." |  "adv.") ^^ { POS(_)}
+    val term = raw"""[-a-zA-Z0-9'.]+""".r ^^ {Term(_)}
 
-    val nonWildCard = partOfSpeech | term
-    val or = (nonWildCard <~ "|") ~ rep1sep(nonWildCard, raw"|")  ^^ { case t~ts => Or(t :: ts) }
+    val partOfSpeech =
+      ("adj." | "n." | "v." | "prep." | "det." |  "adv.") ^^ { POS(_)}
+
+    val simWords =
+      "~" ~ raw"""[-a-zA-Z'.]+""".r ~
+        opt("%" ~> decimalNumber) ~
+        opt("#" ~> """[0-9]+""".r) ^^ {
+          case  "~" ~ word ~ bound ~ topN  =>
+            println("bound: " +bound.getOrElse("none") + "topN: " + topN.getOrElse("none"))
+            SimWords(word,bound.map(_.toDouble).getOrElse(0.1), topN.map(_.toInt).getOrElse(10) )
+        }
+
+    val nonWildCard = simWords | partOfSpeech | term 
+    val or = (nonWildCard <~ "/") ~
+      rep1sep(nonWildCard, raw"/")  ^^ { case t~ts => Or(t :: ts) }
     val hereAtom = wildCard | or | nonWildCard
     val maybe = "?" ~> hereAtom ^^ { Maybe(_) }
+
+
 
     val atom: Parser[Atom] = anyWildCard | maybe | hereAtom
     val expr: Parser[List[Atom]] = rep(atom) 
@@ -66,6 +84,16 @@ object LinggleQuery {
         for {
           nonWC <- nonWCs
           newLQ <- handleHereAtom(queries, nonWC)
+        } yield newLQ
+
+      case SimWords(term, bound, topN) =>
+        val simwords = PantelSimWords.get(term, bound, topN) map { x =>
+          x.simWords
+        } getOrElse Map[String, Double]()
+        for {
+          (word, score) <- (term, 1.0) :: simwords.toList
+          if score > 0.1
+          newLQ <- handleHereAtom(queries, Term(word))
         } yield newLQ
 
       case _ => 
@@ -113,9 +141,9 @@ object LinggleQuery {
          |""".format( parse(query).get.mkString("  ", "\n  ", "")).stripMargin)
     }
 
-  def main(args: Array[String]) {
-    queryDemo("a b c")
-  }
+  // def main(args: Array[String]) {
+  //   queryDemo("a b c")
+  // }
 }
 
 
@@ -127,9 +155,7 @@ class Linggle(hBaseConfFileName: String, table: String) {
     def compare(a: Row, b: Row) = - (a.count compare b.count)
   }
 
-  // Play.getExistingFile("")
   val bncJsonPath = "bncwordlemma.json"
-  // val bncJsonIS = current.resourceAsStream(bncJsonPath)
 
   val posMapOpt = current.resourceAsStream(bncJsonPath).map { is =>  POS(is) } orElse {
   // Didn't find the resource, are we in dev / test / stage environment?
@@ -137,14 +163,6 @@ class Linggle(hBaseConfFileName: String, table: String) {
     Play.getExistingFile("conf/%s".format(bncJsonPath)).map { file => POS(file) }
   }
   val posMap = posMapOpt.get
-  // val posMap = (src.map { is =>
-    // POS(src)
-  // }).get
-  // orElse {
-      // Logger.warn("Could not find %s as a jar resource, will look for a conf directory".format(bncJsonPath))
-  // }
-
-  // val unigramMap = UnigramMap(unigramMapJson)
   val hBaseConfFileIS = current.resourceAsStream("hbase-site.xml").get
 
   val hTable = hTableConnect(hBaseConfFileIS, table)
@@ -156,44 +174,18 @@ class Linggle(hBaseConfFileName: String, table: String) {
     new HTable(config, table)
   }
 
-  // def toHex(buf: Array[Byte]): String =
-  //   buf.map("\\%02X" format _).mkString
 
-
-  // def buildScanner(terms: Vector[String], columnBytes: Array[Byte] ): ResultScanner = {
-  //   val startRow = (terms
-  //     map (t => Bytes.toBytes(unigramMap(t)))) reduce {_++_}
-  //   val stopRow: Array[Byte] = startRow.init :+ (startRow.last + 1).toByte
-  //   val scan = new Scan(startRow, stopRow)
-  //   // val scan = new Scan(startRow)
-  //   scan.setSmall(true)
-  //   scan.setBatch(100)
-  //   scan.setCacheBlocks(false)
-  //   scan.setMaxVersions(1)
-  //   // scan.setMaxResultSize(100)
-  //   scan.setCaching(500)
-  //   scan.setCacheBlocks(true)
-  //   scan.setFilter(new PageFilter(100));
-  //   // scan.setAttribute(Scan.HINT_LOOKAHEAD, Bytes.toBytes(5));
-
-  //   // scan.setMaxResultsPerColumnFamily(100)
-
-
-  //   scan.addColumn("sel".getBytes, columnBytes)
-  //   hTable.getScanner(scan)
-  // }
-
-  def timeit[T](run : () => T): T = {
+  def timeit[T](run :  => T): T = {
     def t = System.currentTimeMillis
     val t1 = t
-    val ret = run()
-    println(t - t1)
+    val ret = run
+    // println(t - t1)
     ret
   }
 
-  def timeitGet(linggleQuery: LinggleQuery): (Long,Stream[Row]) = {
-    timeit(() => get(linggleQuery))
-  }
+  // def timeitGet(linggleQuery: LinggleQuery): (Long,Stream[Row]) = {
+  //   timeit(() => get(linggleQuery))
+  // }
 
 
 
@@ -202,13 +194,13 @@ class Linggle(hBaseConfFileName: String, table: String) {
     lq.filters forall { case (position, posTag) => posMap(row.ngram(position), posTagTrans(posTag)) }
   }
 
-  def get(linggleQuery: LinggleQuery): (Long, Stream[Row]) = {
+  def hbaseGet(linggleQuery: LinggleQuery): (Long, Stream[Row]) = {
     println(s"get: $linggleQuery")
     
     val LinggleQuery(terms, length, positions, filters) = linggleQuery
     val row = s"""${length}-${positions.mkString} ${terms.mkString(" ")}""".getBytes
-    val hbaseGet = new Get(row)
-    val result = hTable.get(hbaseGet).getValue("data".getBytes, "".getBytes)
+    val getter = new Get(row)
+    val result = hTable.get(getter).getValue("data".getBytes, "".getBytes)
     if (result != null) {
       val data = Bytes.toString(result).split("\n")
       val totalCount = data(0).toLong
@@ -222,15 +214,7 @@ class Linggle(hBaseConfFileName: String, table: String) {
     }
     else (0, Stream())
   }
-
-  // def scan(linggleQuery: LinggleQuery): Stream[Row] = {
-  //   println(s"scan: $linggleQuery")
     
-  //   val LinggleQuery(terms, length, positions, filters) = linggleQuery
-  //   val column = s"${length}-${positions.mkString}"
-  //   val columnBytes = column.getBytes
-
-  //   val scanner =  buildScanner(terms, columnBytes)
 
 
   //   def resultToRow(result: Result): Row = {
@@ -241,32 +225,6 @@ class Linggle(hBaseConfFileName: String, table: String) {
   //     Row(ngram, count, positions)
   //   }
       
-  //   // def scanToStream(scanner: ResultScanner): Stream[Row] = {
-  //   //   val rows = (scanner.next(100) map resultToRow)
-  //   //   if (rows.size < 100)
-  //   //   {
-  //   //     try
-  //   //       rows.toStream
-  //   //     finally
-  //   //       scanner.close()
-  //   //   }
-  //   //   else
-  //   //     rows.toStream #::: scanToStream(scanner)
-  //   // }
-
-  //   // scanToStream(scanner) 
-  //   val s = (scanner.next(100) map resultToRow ).toStream
-  //   scanner.close()
-  //   s
-  // }
-
-  // def merge(ss: List[Stream[Row]] ): Stream[Row] = {
-  //   val head #:: tail = s0
-  //   head #:: merge(List(tail, s1, s2, s3, s4))
-  //   unfold(ss)(f) //f: List[Stream[Row]] -> (Row, List[Stream[Row]])
-  //   val ones : Stream[Int] = 1 #:: ones
-  //   val nats = 0 #:: nats zipWith (+) ones
-  // }
 
   def merge(ss: Seq[Stream[Row]]): Stream[Row] = {
     if (ss.size  == 0 )
@@ -296,28 +254,23 @@ class Linggle(hBaseConfFileName: String, table: String) {
     }
   }
 
+  def get(q: String): (Long, Stream[Row]) =
+  {
+    val lqs: List[LinggleQuery] = LinggleQuery.parse(q) getOrElse Nil
+    Logger.info(s"$q -> $lqs")
 
-  // def rowFilter(lq: LinggleQuery)(row :Row) : Boolean = {
-  //   val posTagTrans = Map( "n." -> "n", "v." -> "v", "det." -> "d", "prep." -> "p", "adj." -> "a", "adv." -> "r")
-  //   lq.filters forall { case (position, posTag) => posMap(row.ngram(position), posTagTrans(posTag)) }
-  // }
+    lqs match {
+      case Nil =>
+        (0, Stream.Empty)
+      case _ =>
+        val  (totalCounts, manyRows) = (
+          for {
+          lq <- lqs.par
+          } yield timeit(hbaseGet(lq))
+        ).seq.unzip
 
-  
-
-  def query(q: String): (Long, Stream[Row]) = {
-
-    Logger.info("query: $q")
-    val lqs: List[LinggleQuery] = LinggleQuery.parse(q).get
-    val results = for {
-      lq <- lqs.par
-      // row = timeitGet(lq) take 100
-      // if rowFilter(lq)(row)
-    } yield timeitGet(lq)
-    val  (totalCounts, manyRows) = results.seq.unzip
-    val totalCount = totalCounts.sum
-    val rows = merge(manyRows)
-    // rows.seq.sorted.toList     // TODO: merge sort
-    (totalCount, rows)
+        (totalCounts.sum, merge(manyRows))
+    }
   }
 }
 
@@ -325,10 +278,8 @@ class Linggle(hBaseConfFileName: String, table: String) {
 object Tester {
   def linggle = {
     println(LinggleQuery.parse("kill the * ").get.head)
-
     val lgl =new Linggle("hbase-site.xml", "web1t-linggle")
-
-    val (totalCount, rows) =lgl.query("kill the *")
+    val (totalCount, rows) =lgl get "kill the *"
     (rows take 100).toList
   }
 }

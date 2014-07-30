@@ -26,8 +26,8 @@ var HELP = {
         {"<span>_</span>"           :   "search for <span>any</span> word"},
         {"<span>~</span><m>Term</m>":   "search for the <span>similar</span> words of <m>Term</m>"},
         {"<span>?</span><m>Term</m>":   "search for <m>Term</m> <span>optionally</span>"},
-        {"<span>*</span>"         :   "match <span>one or more</span> words"},
-        {"Term1<span>|</span>Term2" :   "with either Term1 <span>or</span> Term2"},
+        {"<span>*</span>"         :   "match <span>zero or more</span> words"},
+        {"Term1<span>/</span>Term2" :   "with either Term1 <span>or</span> Term2"},
         {"<span>part-of-speech</span>"        :   "search for word with specific part-of-speech.<br><br><span>v.</span>(verb), <span>n.</span>(noun), <span>adj.</span>(adjective), <span>adv.</span>(adverb) and <span>prep.</span>(preposition), <span>det.</span>(determiner)"},
     ],
     "HLI": [
