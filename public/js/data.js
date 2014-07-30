@@ -8,7 +8,7 @@ var EXAMPLE = {
         // "take $D ... trip", 
         "go ?to home", 
         
-        "play det. +important role|part"
+        "play det. ~important role|part"
     ],
     "HLI": [
         "How to describe beach?", 
@@ -25,6 +25,7 @@ var HELP = {
     "CMD": [
         {"<span>_</span>"           :   "search for <span>any</span> word"},
         {"<span>~</span><m>Term</m>":   "search for the <span>similar</span> words of <m>Term</m>"},
+        {"<span>~</span><m>Term</m><span>#N</span>":   "the top N <span>similar</span> words of <m>Term</m>"},
         {"<span>?</span><m>Term</m>":   "search for <m>Term</m> <span>optionally</span>"},
         {"<span>*</span>"         :   "match <span>zero or more</span> words"},
         {"Term1<span>/</span>Term2" :   "with either Term1 <span>or</span> Term2"},
