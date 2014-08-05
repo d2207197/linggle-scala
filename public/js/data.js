@@ -7,7 +7,7 @@ var EXAMPLE = {
         "v. an/a adj. role", 
         // "take $D ... trip", 
         "go ?to home", 
-        "how to v. n."
+        "how to v. n.",
         "play det. ~important role/part"
         
     ],
