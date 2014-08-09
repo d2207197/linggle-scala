@@ -44,6 +44,23 @@ object POS {
     val posMap:Map[String, Vector[String]] =  mapper.readValue[Map[String,Vector[String]]](jsonFile)
     new POS(posMap)
   }
-
 }
 
+class PosWordsList(wordMap: Map[String, Vector[String]]) {
+  def apply(pos: String) = wordMap(pos)
+}
+
+object PosWordsList {
+  def apply(jsonFile: java.io.File) = {
+    val mapper = new ObjectMapper() with ScalaObjectMapper
+    mapper.registerModule(DefaultScalaModule)
+    val posMap:Map[String, Vector[String]] =  mapper.readValue[Map[String,Vector[String]]](jsonFile)
+    new POS(posMap)
+  }
+  def apply(jsonIS: java.io.InputStream) = {
+    val mapper = new ObjectMapper() with ScalaObjectMapper
+    mapper.registerModule(DefaultScalaModule)
+    val posMap:Map[String, Vector[String]] =  mapper.readValue[Map[String,Vector[String]]](jsonIS)
+    new POS(posMap)
+  }
+}

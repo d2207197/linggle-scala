@@ -25,10 +25,9 @@ case class LinggleQuery(terms: Vector[String] , length: Int , positions: Vector[
 
 
 object LinggleQuery {
-
+  val posTagTrans = Map( "n." -> "n", "v." -> "v", "det." -> "d", "prep." -> "p", "adj." -> "a", "adv." -> "r", "pron." -> "U", "conj." -> "c", "interj." -> "i")
 
   trait Atom
-
   trait HereAtom extends Atom
 
   case class Or(terms: List[NonWildCard]) extends HereAtom {
@@ -47,7 +46,19 @@ object LinggleQuery {
 
   import scala.util.parsing.combinator._
 
+
+  val posWordsListJsonPath = "bncposwordlist.json"
+  val posWordsListOpt = current.resourceAsStream(posWordsListJsonPath).map { is =>  PosWordsList(is) } orElse {
+    // Didn't find the resource, are we in dev / test / stage environment?
+    Logger.warn("Could not find %s as a jar resource, will look for a conf directory".format(posWordsListJsonPath))
+    Play.getExistingFile("conf/%s".format(posWordsListJsonPath)).map { file => PosWordsList(file) }
+  }
+  val posWordsList = posWordsListOpt.get
+
+
   object QueryParser extends JavaTokenParsers {
+
+
     val wildCard  = "_".r ^^^ { WildCard}
     val anyWildCard = "*" ^^^ { AnyWildCard}
 
@@ -78,7 +89,7 @@ object LinggleQuery {
     def parse(userQuery : String) = parseAll(expr, userQuery)
   }
 
-  def handleHereAtom(queries: List[LinggleQuery], hereAtom: HereAtom): List[LinggleQuery] =
+  def handleHereAtom(queries: Seq[LinggleQuery], hereAtom: HereAtom): Seq[LinggleQuery] =
     hereAtom match {
       case Or(nonWCs) =>
         for {
@@ -96,6 +107,19 @@ object LinggleQuery {
           newLQ <- handleHereAtom(queries, Term(word))
         } yield newLQ
 
+      // case POS(pos) if "det." == pos =>
+      //   for {
+      //     // nonWC <- posWordsList(posTagTrans(pos)).toList map {word => Term(word)}
+      //     nonWC <- List( "a", "an", "all", "almost all", "anny", "anoda", "anotha", "anotha'", "another", "any", "any and all", "any ol'", "any old", "any ole", "any-and-all", "atta", "beaucoup", "bietjie", "bolth", "both", "bothe", "certain", "couple", "dat", "dem", "dis", "each", "each and every", "either", "eiþer", "enough", "enuf", "enuff", "eny", "euerie", "euery", "everie", "every", "few", "fewer", "fewest", "fewscore", "fuck all", "hella", "her", "hevery", "his", "hits", "how many", "how much", "its", "last", "least", "little", "many", "many a", "many another", "more", "more and more", "mos'", "most", "much", "muchee", "my", "'n", "nary a", "neither", "next", "nil", "no", "none", "not a little", "not even one", "other", "our", "overmuch", "own", "owne", "plenty", "quite a few", "quodque", "said", "several", "severall", "some", "some kind of", "some ol'", "some old", "some ole", "such", "sufficient", "that", "that there", "their", "them", "these", "they", "thilk", "thine", "this", "this here", "this, that, and the other", "this, that, or the other", "those", "thy", "umpteen", "us", "various", "wat", "we", "what", "whate'er", "whatever", "which", "whichever", "yonder", "you", "your", "zis" ) map {word => Term(word)}
+      //     newLQ <- handleHereAtom(queries, nonWC)
+      //   } yield newLQ
+
+      // case POS(pos) if "prep." == pos =>
+      //   for {
+      //     nonWC <- List("abaft", "abeam", "aboard", "about", "above", "absent", "across", "afore", "after", "against", "along", "alongside", "amid", "amidst", "among", "amongst", "anenst", "apropos", "apud", "around", "as", "aside", "astride", "at", "athwart", "atop", "barring", "before", "behind", "below", "beneath", "beside", "besides", "between", "beyond", "but", "by", "circa", "concerning", "despite", "down", "during", "except", "excluding", "failing", "following", "for", "forenenst", "from", "given", "in", "including", "inside", "into", "like", "mid", "midst", "minus", "modulo", "near", "next", "notwithstanding", "o'", "of", "off", "on", "onto", "opposite", "out", "outside", "over", "pace", "past", "per", "plus", "pro", "qua", "regarding", "round", "sans", "save", "since", "than", "through", "thru", "throughout", "thruout", "till", "times", "to", "toward", "towards", "under", "underneath", "unlike", "until", "unto", "up", "upon", "versus", "via", "vice", "vis-à-vis", "with", "within", "without", "worth" ) map { word => Term(word)}
+      //     newLQ <- handleHereAtom(queries, nonWC)
+      //   } yield newLQ
+
       case _ => 
         for {
           LinggleQuery(ts, l, ps, fs) <- queries
@@ -109,7 +133,7 @@ object LinggleQuery {
     }
   
 
-  def handleAtom(queries: List[LinggleQuery], atom: Atom): List[LinggleQuery] =
+  def handleAtom(queries: Seq[LinggleQuery], atom: Atom): Seq[LinggleQuery] =
     atom match {
       case ha:HereAtom => handleHereAtom(queries, ha)
 
@@ -127,10 +151,9 @@ object LinggleQuery {
   def parse(userQuery: String) = 
     QueryParser.parse(userQuery) map { atoms =>
       (atoms.foldLeft
-        (List[LinggleQuery](LinggleQuery(Vector(), 0, Vector(), Vector())))
+        (Seq[LinggleQuery](LinggleQuery(Vector(), 0, Vector(), Vector())))
         (handleAtom(_,_)) 
-        filter {case LinggleQuery(ts, l, ps, fs) => ts.size > 0})
-    }
+        filter {case LinggleQuery(ts, l, ps, fs) => ts.size > 0})}
 
   def queryDemo(query: String) = {
     import scala.io.AnsiColor._
@@ -138,8 +161,7 @@ object LinggleQuery {
       println(
         s"""query:$query
          |%s
-         |""".format( parse(query).get.mkString("  ", "\n  ", "")).stripMargin)
-    }
+         |""".format( parse(query).get.mkString("  ", "\n  ", "")).stripMargin)}
 
   // def main(args: Array[String]) {
   //   queryDemo("a b c")
@@ -163,6 +185,9 @@ class Linggle(hBaseConfFileName: String, table: String) {
     Play.getExistingFile("conf/%s".format(bncJsonPath)).map { file => POS(file) }
   }
   val posMap = posMapOpt.get
+
+
+
   val hBaseConfFileIS = current.resourceAsStream("hbase-site.xml").get
 
   val hTable = hTableConnect(hBaseConfFileIS, table)
@@ -190,8 +215,7 @@ class Linggle(hBaseConfFileName: String, table: String) {
 
 
   def rowFilter(lq: LinggleQuery)(row :Row) : Boolean = {
-val posTagTrans = Map( "n." -> "n", "v." -> "v", "det." -> "d", "prep." -> "p", "adj." -> "a", "adv." -> "r", "pron." -> "U", "conj." -> "c", "interj." -> "i")
-    lq.filters forall { case (position, posTag) => posMap(row.ngram(position).toLowerCase, posTagTrans(posTag)) }
+    lq.filters forall { case (position, posTag) => posMap(row.ngram(position).toLowerCase, LinggleQuery.posTagTrans(posTag)) }
   }
 
   def hbaseGet(linggleQuery: LinggleQuery): (Long, Stream[Row]) = {
@@ -256,7 +280,7 @@ val posTagTrans = Map( "n." -> "n", "v." -> "v", "det." -> "d", "prep." -> "p", 
 
   def get(q: String): (Long, Stream[Row]) =
   {
-    val lqs: List[LinggleQuery] = LinggleQuery.parse(q) getOrElse Nil
+    val lqs: Seq[LinggleQuery] = LinggleQuery.parse(q) getOrElse Nil
     Logger.info(s"$q -> $lqs")
 
     lqs match {
