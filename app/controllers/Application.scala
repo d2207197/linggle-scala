@@ -16,7 +16,8 @@ object Application extends Controller {
   def index = Action { Ok(views.html.index("hi"))}
   
   def query(q: String) = Action {
-    val (totalCount, rows) = lgl get q
+    
+    val (totalCount, rows) = lgl get q.replace("|", "/")
     // val s = (for(r <- result take 100) yield r.count).sum
     val jsonRows = (
       for(row <- rows take 100) yield Json.arr(Json.obj(
