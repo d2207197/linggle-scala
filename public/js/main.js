@@ -387,7 +387,7 @@ function fetch_worker(server, query)
 {
     $('#cluster-toggle').hide(0);
     request = $.ajax({
-	url: server + query.replace(/%2F/g, "%7C"),
+	url: server + query.replace(/%2F/g, "@"),
 	// url: 'static/A_beach.json',
 	// url: "static/cultivate_N_new.json",
 	type: "GET",
