@@ -17,6 +17,13 @@ import org.apache.hadoop.hbase.util.{Bytes, Writables}
 import org.apache.hadoop.hbase.filter.PageFilter
 
 
+
+object ParseMode extends Enumeration {
+  type ParseMode = Value
+  val Fast, PosPartiallyExpanded = Value
+}
+import ParseMode._
+
 case class LinggleQuery(terms: Vector[String] , length: Int , positions: Vector[Int], filters: Vector[Tuple2[Int, String]])
 {
   override def toString = "LQ(ts: \"%s\", l: %d, ps: %s, fs: [%s])" format
@@ -57,8 +64,6 @@ object LinggleQuery {
 
 
   object QueryParser extends JavaTokenParsers {
-
-
     val wildCard  = "_".r ^^^ { WildCard}
     val anyWildCard = "*" ^^^ { AnyWildCard}
 
@@ -82,19 +87,19 @@ object LinggleQuery {
     val hereAtom = wildCard | or | nonWildCard
     val maybe = "?" ~> hereAtom ^^ { Maybe(_) }
 
-
-
     val atom: Parser[Atom] = anyWildCard | maybe | hereAtom
     val expr: Parser[List[Atom]] = rep(atom) 
     def parse(userQuery : String) = parseAll(expr, userQuery)
   }
 
-  def handleHereAtom(queries: Seq[LinggleQuery], hereAtom: HereAtom): Seq[LinggleQuery] =
+
+
+  def handleHereAtom(mode: ParseMode)(queries: Seq[LinggleQuery], hereAtom: HereAtom): Seq[LinggleQuery] = 
     hereAtom match {
       case Or(nonWCs) =>
         for {
           nonWC <- nonWCs
-          newLQ <- handleHereAtom(queries, nonWC)
+          newLQ <- handleHereAtom(mode)(queries, nonWC)
         } yield newLQ
 
       case SimWords(term, bound, topN) =>
@@ -104,21 +109,21 @@ object LinggleQuery {
         for {
           (word, score) <- (term, 1.0) :: simwords.toList
           if score > 0.1
-          newLQ <- handleHereAtom(queries, Term(word))
+          newLQ <- handleHereAtom(mode)(queries, Term(word))
         } yield newLQ
 
-      // case POS(pos) if "det." == pos =>
-      //   for {
-      //     // nonWC <- posWordsList(posTagTrans(pos)).toList map {word => Term(word)}
-      //     nonWC <- List( "a", "an", "all", "almost all", "anny", "anoda", "anotha", "anotha'", "another", "any", "any and all", "any ol'", "any old", "any ole", "any-and-all", "atta", "beaucoup", "bietjie", "bolth", "both", "bothe", "certain", "couple", "dat", "dem", "dis", "each", "each and every", "either", "eiþer", "enough", "enuf", "enuff", "eny", "euerie", "euery", "everie", "every", "few", "fewer", "fewest", "fewscore", "fuck all", "hella", "her", "hevery", "his", "hits", "how many", "how much", "its", "last", "least", "little", "many", "many a", "many another", "more", "more and more", "mos'", "most", "much", "muchee", "my", "'n", "nary a", "neither", "next", "nil", "no", "none", "not a little", "not even one", "other", "our", "overmuch", "own", "owne", "plenty", "quite a few", "quodque", "said", "several", "severall", "some", "some kind of", "some ol'", "some old", "some ole", "such", "sufficient", "that", "that there", "their", "them", "these", "they", "thilk", "thine", "this", "this here", "this, that, and the other", "this, that, or the other", "those", "thy", "umpteen", "us", "various", "wat", "we", "what", "whate'er", "whatever", "which", "whichever", "yonder", "you", "your", "zis" ) map {word => Term(word)}
-      //     newLQ <- handleHereAtom(queries, nonWC)
-      //   } yield newLQ
+      case POS(pos) if "det." == pos && mode == PosPartiallyExpanded =>
+        for {
+          // nonWC <- posWordsList(posTagTrans(pos)).toList map {word => Term(word)}
+          nonWC <- List( "a", "an", "all", "almost all", "anny", "anoda", "anotha", "anotha'", "another", "any", "any and all", "any ol'", "any old", "any ole", "any-and-all", "atta", "beaucoup", "bietjie", "bolth", "both", "bothe", "certain", "couple", "dat", "dem", "dis", "each", "each and every", "either", "eiþer", "enough", "enuf", "enuff", "eny", "euerie", "euery", "everie", "every", "few", "fewer", "fewest", "fewscore", "fuck all", "hella", "her", "hevery", "his", "hits", "how many", "how much", "its", "last", "least", "little", "many", "many a", "many another", "more", "more and more", "mos'", "most", "much", "muchee", "my", "'n", "nary a", "neither", "next", "nil", "no", "none", "not a little", "not even one", "other", "our", "overmuch", "own", "owne", "plenty", "quite a few", "quodque", "said", "several", "severall", "some", "some kind of", "some ol'", "some old", "some ole", "such", "sufficient", "that", "that there", "their", "them", "these", "they", "thilk", "thine", "this", "this here", "this, that, and the other", "this, that, or the other", "those", "thy", "umpteen", "us", "various", "wat", "we", "what", "whate'er", "whatever", "which", "whichever", "yonder", "you", "your", "zis" ) map {word => Term(word)}
+          newLQ <- handleHereAtom(mode)(queries, nonWC)
+        } yield newLQ
 
-      // case POS(pos) if "prep." == pos =>
-      //   for {
-      //     nonWC <- List("abaft", "abeam", "aboard", "about", "above", "absent", "across", "afore", "after", "against", "along", "alongside", "amid", "amidst", "among", "amongst", "anenst", "apropos", "apud", "around", "as", "aside", "astride", "at", "athwart", "atop", "barring", "before", "behind", "below", "beneath", "beside", "besides", "between", "beyond", "but", "by", "circa", "concerning", "despite", "down", "during", "except", "excluding", "failing", "following", "for", "forenenst", "from", "given", "in", "including", "inside", "into", "like", "mid", "midst", "minus", "modulo", "near", "next", "notwithstanding", "o'", "of", "off", "on", "onto", "opposite", "out", "outside", "over", "pace", "past", "per", "plus", "pro", "qua", "regarding", "round", "sans", "save", "since", "than", "through", "thru", "throughout", "thruout", "till", "times", "to", "toward", "towards", "under", "underneath", "unlike", "until", "unto", "up", "upon", "versus", "via", "vice", "vis-à-vis", "with", "within", "without", "worth" ) map { word => Term(word)}
-      //     newLQ <- handleHereAtom(queries, nonWC)
-      //   } yield newLQ
+      case POS(pos) if "prep." == pos && mode == PosPartiallyExpanded =>
+        for {
+          nonWC <- List("abaft", "abeam", "aboard", "about", "above", "absent", "across", "afore", "after", "against", "along", "alongside", "amid", "amidst", "among", "amongst", "anenst", "apropos", "apud", "around", "as", "aside", "astride", "at", "athwart", "atop", "barring", "before", "behind", "below", "beneath", "beside", "besides", "between", "beyond", "but", "by", "circa", "concerning", "despite", "down", "during", "except", "excluding", "failing", "following", "for", "forenenst", "from", "given", "in", "including", "inside", "into", "like", "mid", "midst", "minus", "modulo", "near", "next", "notwithstanding", "o'", "of", "off", "on", "onto", "opposite", "out", "outside", "over", "pace", "past", "per", "plus", "pro", "qua", "regarding", "round", "sans", "save", "since", "than", "through", "thru", "throughout", "thruout", "till", "times", "to", "toward", "towards", "under", "underneath", "unlike", "until", "unto", "up", "upon", "versus", "via", "vice", "vis-à-vis", "with", "within", "without", "worth" ) map { word => Term(word)}
+          newLQ <- handleHereAtom(mode)(queries, nonWC)
+        } yield newLQ
 
       case _ => 
         for {
@@ -133,12 +138,12 @@ object LinggleQuery {
     }
   
 
-  def handleAtom(queries: Seq[LinggleQuery], atom: Atom): Seq[LinggleQuery] =
+  def handleAtom(mode: ParseMode)(queries: Seq[LinggleQuery], atom: Atom): Seq[LinggleQuery] =
     atom match {
-      case ha:HereAtom => handleHereAtom(queries, ha)
+      case ha:HereAtom => handleHereAtom(mode)(queries, ha)
 
       case Maybe(hereAtom) => for {
-        newLQs <- List(queries, handleHereAtom(queries, hereAtom))
+        newLQs <- List(queries, handleHereAtom(mode)(queries, hereAtom))
         newLQ <- newLQs
       } yield newLQ
 
@@ -148,25 +153,24 @@ object LinggleQuery {
       } yield LinggleQuery(ts, newL, ps, fs)
     }
 
-  def parse(userQuery: String) = 
+  def parse(userQuery: String, mode: ParseMode) = 
     QueryParser.parse(userQuery) map { atoms =>
       (atoms.foldLeft
         (Seq[LinggleQuery](LinggleQuery(Vector(), 0, Vector(), Vector())))
-        (handleAtom(_,_)) 
+        (handleAtom(mode)(_,_)) 
         filter {case LinggleQuery(ts, l, ps, fs) => ts.size > 0})}
 
-  def queryDemo(query: String) = {
-    import scala.io.AnsiColor._
-    println(QueryParser.parse(query).get)
-      println(
-        s"""query:$query
-         |%s
-         |""".format( parse(query).get.mkString("  ", "\n  ", "")).stripMargin)}
+//   def queryDemo(query: String) = {
+//     import scala.io.AnsiColor._
+//     println(QueryParser.parse(query).get)
+//       println(
+//         s"""query:$query
+//          |%s
+//          |""".format( parse(query).get.mkString("  ", "\n  ", "")).stripMargin)}
+// }
 
-  // def main(args: Array[String]) {
-  //   queryDemo("a b c")
-  // }
 }
+
 
 
 case class Row(ngram: Vector[String] = Vector(), count: Long = 0, positions: Vector[Int] = Vector())
@@ -278,9 +282,9 @@ class Linggle(hBaseConfFileName: String, table: String) {
     }
   }
 
-  def get(q: String): (Long, Stream[Row]) =
+  def get(q: String, mode: ParseMode): (Long, Stream[Row]) =
   {
-    val lqs: Seq[LinggleQuery] = LinggleQuery.parse(q) getOrElse Nil
+    val lqs: Seq[LinggleQuery] = LinggleQuery.parse(q, mode ) getOrElse Nil
     Logger.info(s"$q -> $lqs")
 
     lqs match {
@@ -299,14 +303,14 @@ class Linggle(hBaseConfFileName: String, table: String) {
 }
 
 
-object Tester {
-  def linggle = {
-    println(LinggleQuery.parse("kill the * ").get.head)
-    val lgl =new Linggle("hbase-site.xml", "web1t-linggle")
-    val (totalCount, rows) =lgl get "kill the *"
-    (rows take 100).toList
-  }
-}
+// object Tester {
+//   def linggle = {
+//     println(LinggleQuery.parse("kill the * ").get.head)
+//     val lgl =new Linggle("hbase-site.xml", "web1t-linggle")
+//     val (totalCount, rows) =lgl get "kill the *"
+//     (rows take 100).toList
+//   }
+// }
 
 
 

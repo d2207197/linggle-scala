@@ -4,6 +4,8 @@ import play.api._
 import play.api.mvc._
 import models._
 
+import play.api.Logger
+
 // import cc.nlplab._
 // import play.api.libs.json._
 
@@ -17,20 +19,28 @@ object Application extends Controller {
   
   def query(q: String) = Action {
     
-    val (totalCount, rows) = lgl get q.replace("@", "/")
-    // val s = (for(r <- result take 100) yield r.count).sum
+    val (totalCount, rows) = {
+      val (_totalCount, _rows) = lgl.get(q.replace("@", "/"), ParseMode.Fast)
+      if ((_rows take 50).size == 50)
+        (_totalCount, _rows)
+      else {
+        Logger.info("Fast Mode Failed, switch to POS Partially Expanded Mode")
+        lgl.get(q.replace("@", "/"), ParseMode.PosPartiallyExpanded)}}
+
+    val _totalCount = (for(row <- rows take 50) yield row.count).sum
     val jsonRows = (
-      for(row <- rows take 100) yield Json.arr(Json.obj(
+      for(row <- rows take 50) yield Json.arr(Json.obj(
         "count" -> row.count,
         "phrase" -> row.ngram.zipWithIndex.map { case (word, i) =>
           if(! row.positions.contains(i)) s"<strong>$word</strong> " else s"$word "},
         "count_str" -> df.format(row.count),
         "percent" -> {
-          val percent = 100*row.count/totalCount
+          val percent = 100*row.count/_totalCount
           if (percent == 0) " < 1 %" else s"$percent %"})))
     Ok(
       jsonRows match {
         case Stream.Empty => new JsArray
         case jsonStream: Stream[JsArray] => jsonStream reduce (_ ++ _)})
+
   }
 }
